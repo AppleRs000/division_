@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex,nofollow">
+  <title>あまりのある わりざん たんけん</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 15px;
+    }
+    h1 {
+      font-size: clamp(20px, 4vw, 26px);
+      color: #2c3e50;
+      margin: 5px 0 15px 0;
+    }
+
+    /* 設定エリア */
+    .setting-panel {
+      background: #fff;
+      padding: 12px 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    select {
+      font-size: 18px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 2px solid #3498db;
+    }
+
+    /* メインのステージ */
+    .stage {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .area-title {
+      font-size: 14px;
+      color: #7f8c8d;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    /* まだ分けていないお菓子 */
+    .stock-area {
+      min-height: 80px;
+      background: #f1f2f6;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-content: flex-start;
+    }
+
+    /* お皿（グループ）一覧 */
+    .plates-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 100px;
+    }
+
+    .plate {
+      border: 3px dashed #ff9f43;
+      background: #fffaf0;
+      border-radius: 15px;
+      padding: 8px;
+      min-width: 80px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* あまりの箱 */
+    .remainder-area {
+      border: 3px solid #ee5253;
+      background: #ff6b6b15;
+      border-radius: 15px;
+      padding: 10px;
+      min-height: 70px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* お菓子アイテム */
+    .candy {
+      width: 36px;
+      height: 36px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 3px 0 #2ed57300;
+      animation: pop 0.2s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.5); }
+      100% { transform: scale(1); }
+    }
+
+    /* コントロールボタン */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    }
+    .btn-step { background-color: #3498db; }
+    .btn-all { background-color: #2ecc71; }
+    .btn-reset { background-color: #95a5a6; }
+    .btn:active { transform: translateY(2px); box-shadow: none; }
+
+    /* 式と答えの表示 */
+    .formula-box {
+      margin-top: 15px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 12px 25px;
+      border-radius: 15px;
+      font-size: clamp(20px, 4vw, 26px);
+      font-weight: bold;
+      text-align: center;
+    }
+    .highlight { color: #f1c40f; }
+    .rem-highlight { color: #ff6b6b; }
+  </style>
+</head>
+<body>
+
+  <h1>あまりのある わりざん</h1>
+
+  <div class="setting-panel">
+    <span>ぜんぶで：
+      <select id="total-select" onchange="initGame()">
+        <option value="13" selected>13個</option>
+        <option value="15">15個</option>
+        <option value="17">17個</option>
+      </select>
+    </span>
+    <span>１皿に：
+      <select id="group-select" onchange="initGame()">
+        <option value="3" selected>3個ずつ</option>
+        <option value="4">4個ずつ</option>
+        <option value="5">5個ずつ</option>
+      </select>
+    </span>
+  </div>
+
+  <div class="stage">
+    <div>
+      <div class="area-title">● のこりの おかし</div>
+      <div id="stock-box" class="stock-area"></div>
+    </div>
+
+    <div>
+      <div class="area-title">● くばった おさら（同じ数ずつ）</div>
+      <div id="plates-box" class="plates-area"></div>
+    </div>
+
+    <div>
+      <div class="area-title" style="color:#ee5253;">● あまった おかし（1皿ぶん に満たない）</div>
+      <div id="remainder-box" class="remainder-area"></div>
+    </div>
+  </div>
+
+  <div class="formula-box">
+    <span id="formula-text">13 ÷ 3 = <span class="highlight">0</span> あまり <span class="rem-highlight">0</span></span>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-step" onclick="divideStep()">1パックつめる</button>
+    <button class="btn btn-all" onclick="divideAll()">ぜんぶつめる</button>
+    <button class="btn btn-reset" onclick="initGame()">やりなおす</button>
+  </div>
+
+  <script>
+    let total = 13;
+    let groupSize = 3;
+    let currentStock = 13;
+    let completedGroups = 0;
+
+    function initGame() {
+      total = parseInt(document.getElementById('total-select').value);
+      groupSize = parseInt(document.getElementById('group-select').value);
+      currentStock = total;
+      completedGroups = 0;
+
+      renderStock();
+      document.getElementById('plates-box').innerHTML = '';
+      document.getElementById('remainder-box').innerHTML = '';
+      updateFormula();
+    }
+
+    function renderStock() {
+      const stockBox = document.getElementById('stock-box');
+      stockBox.innerHTML = '';
+      for (let i = 1; i <= currentStock; i++) {
+        const candy = document.createElement('div');
+        candy.className = 'candy';
+        candy.textContent = '🍬';
+        stockBox.appendChild(candy);
+      }
+    }
+
+    function divideStep() {
+      if (currentStock < groupSize) {
+        // 残りが1皿分未満になったら「あまりの箱」に移動
+        if (currentStock > 0) {
+          const remBox = document.getElementById('remainder-box');
+          for (let i = 0; i < currentStock; i++) {
+            const candy = document.createElement('div');
+            candy.className = 'candy';
+            candy.style.background = '#ee5253';
+            candy.textContent = '🍬';
+            remBox.appendChild(candy);
+          }
+          currentStock = 0;
+          renderStock();
+          updateFormula();
+        }
+        return;
+      }
+
+      // 1セット（お皿）を追加
+      currentStock -= groupSize;
+      completedGroups++;
+
+      const platesBox = document.getElementById('plates-box');
+      const plate = document.createElement('div');
+      plate.className = 'plate';
+
+      for (let i = 0; i < groupSize; i++) {
+        const candy = document.createElement('div');
+        candy.className = 'candy';
+        candy.textContent = '🍬';
+        plate.appendChild(candy);
+      }
+      platesBox.appendChild(plate);
+
+      renderStock();
+      updateFormula();
+    }
+
+    function divideAll() {
+      while (currentStock > 0) {
+        divideStep();
+      }
+    }
+
+    function updateFormula() {
+      const remainder = (currentStock === 0 && completedGroups > 0) 
+        ? (total - completedGroups * groupSize) 
+        : currentStock;
+
+      document.getElementById('formula-text').innerHTML = 
+        `${total} ÷ ${groupSize} = <span class="highlight">${completedGroups}</span> あまり <span class="rem-highlight">${remainder}</span>`;
+    }
+
+    window.onload = initGame;
+  </script>
+</body>
+</html>
