@@ -23,7 +23,7 @@
       padding: 15px;
     }
     h1 {
-      font-size: clamp(20px, 4vw, 26px);
+      font-size: clamp(20px, 4.5vw, 26px);
       color: #2c3e50;
       margin: 5px 0 15px 0;
     }
@@ -31,20 +31,25 @@
     /* 設定エリア */
     .setting-panel {
       background: #fff;
-      padding: 12px 20px;
+      padding: 12px 18px;
       border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
       display: flex;
-      gap: 15px;
+      flex-wrap: wrap;
+      gap: 12px;
       align-items: center;
+      justify-content: center;
       margin-bottom: 15px;
       font-weight: bold;
+      font-size: 15px;
     }
     select {
-      font-size: 18px;
-      padding: 5px 10px;
+      font-size: 16px;
+      padding: 6px 10px;
       border-radius: 8px;
       border: 2px solid #3498db;
+      background-color: #fff;
+      font-weight: bold;
     }
 
     /* メインのステージ */
@@ -69,7 +74,7 @@
 
     /* まだ分けていないお菓子 */
     .stock-area {
-      min-height: 80px;
+      min-height: 70px;
       background: #f1f2f6;
       border-radius: 12px;
       padding: 10px;
@@ -84,7 +89,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      min-height: 100px;
+      min-height: 90px;
     }
 
     .plate {
@@ -92,13 +97,12 @@
       background: #fffaf0;
       border-radius: 15px;
       padding: 8px;
-      min-width: 80px;
+      min-width: 70px;
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
 
     /* あまりの箱 */
@@ -107,7 +111,7 @@
       background: #ff6b6b15;
       border-radius: 15px;
       padding: 10px;
-      min-height: 70px;
+      min-height: 60px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -115,17 +119,15 @@
 
     /* お菓子アイテム */
     .candy {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       background: #ff4757;
       color: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      font-size: 16px;
-      box-shadow: 0 3px 0 #2ed57300;
+      font-size: 15px;
       animation: pop 0.2s ease;
     }
 
@@ -144,8 +146,8 @@
     }
     .btn {
       flex: 1;
-      padding: 12px;
-      font-size: 16px;
+      padding: 12px 8px;
+      font-size: 15px;
       font-weight: bold;
       border: none;
       border-radius: 12px;
@@ -163,9 +165,9 @@
       margin-top: 15px;
       background: #2c3e50;
       color: #fff;
-      padding: 12px 25px;
+      padding: 12px 20px;
       border-radius: 15px;
-      font-size: clamp(20px, 4vw, 26px);
+      font-size: clamp(18px, 4.5vw, 24px);
       font-weight: bold;
       text-align: center;
     }
@@ -179,18 +181,10 @@
 
   <div class="setting-panel">
     <span>ぜんぶで：
-      <select id="total-select" onchange="initGame()">
-        <option value="13" selected>13個</option>
-        <option value="15">15個</option>
-        <option value="17">17個</option>
-      </select>
+      <select id="total-select" onchange="initGame()"></select>
     </span>
     <span>１皿に：
-      <select id="group-select" onchange="initGame()">
-        <option value="3" selected>3個ずつ</option>
-        <option value="4">4個ずつ</option>
-        <option value="5">5個ずつ</option>
-      </select>
+      <select id="group-select" onchange="initGame()"></select>
     </span>
   </div>
 
@@ -212,11 +206,11 @@
   </div>
 
   <div class="formula-box">
-    <span id="formula-text">13 ÷ 3 = <span class="highlight">0</span> あまり <span class="rem-highlight">0</span></span>
+    <span id="formula-text">0 ÷ 0 = <span class="highlight">0</span> あまり <span class="rem-highlight">0</span></span>
   </div>
 
   <div class="controls">
-    <button class="btn btn-step" onclick="divideStep()">1パックつめる</button>
+    <button class="btn btn-step" onclick="divideStep()">1皿つめる</button>
     <button class="btn btn-all" onclick="divideAll()">ぜんぶつめる</button>
     <button class="btn btn-reset" onclick="initGame()">やりなおす</button>
   </div>
@@ -226,6 +220,30 @@
     let groupSize = 3;
     let currentStock = 13;
     let completedGroups = 0;
+
+    // プルダウン選択肢の自動生成（1〜20個、1〜10個）
+    function createOptions() {
+      const totalSelect = document.getElementById('total-select');
+      const groupSelect = document.getElementById('group-select');
+
+      // ぜんぶで: 1〜20
+      for (let i = 1; i <= 20; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i}個`;
+        if (i === 13) opt.selected = true; // 初期値 13個
+        totalSelect.appendChild(opt);
+      }
+
+      // 1皿に: 1〜10
+      for (let i = 1; i <= 10; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i}個ずつ`;
+        if (i === 3) opt.selected = true; // 初期値 3個ずつ
+        groupSelect.appendChild(opt);
+      }
+    }
 
     function initGame() {
       total = parseInt(document.getElementById('total-select').value);
@@ -304,7 +322,10 @@
         `${total} ÷ ${groupSize} = <span class="highlight">${completedGroups}</span> あまり <span class="rem-highlight">${remainder}</span>`;
     }
 
-    window.onload = initGame;
+    window.onload = () => {
+      createOptions();
+      initGame();
+    };
   </script>
 </body>
 </html>
